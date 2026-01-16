@@ -98,6 +98,7 @@ end
 function M.setup()
   setup_hl_groups()
   vim.api.nvim_create_autocmd("ColorScheme", {
+    group = vim.api.nvim_create_augroup("UnclashHighlight", { clear = true }),
     desc = "update colors",
     callback = function()
       setup_hl_groups()

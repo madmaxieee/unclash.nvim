@@ -123,6 +123,7 @@ end
 
 function M.setup()
   -- run callbacks on virtual line clicks
+  -- TODO: only set keymap for conflicted buffers
   vim.keymap.set("n", "<LeftMouse>", function()
     local bufnr = vim.api.nvim_get_current_buf()
     if not state.conflicted_bufs[bufnr] then
