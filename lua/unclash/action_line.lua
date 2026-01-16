@@ -93,12 +93,13 @@ function M.setup()
   -- run callbacks on virtual line clicks
   -- TODO: only set keymap for conflicted buffers
   vim.keymap.set("n", "<LeftMouse>", function()
-    local bufnr = vim.api.nvim_get_current_buf()
-    if not state.conflicted_bufs[bufnr] then
+    local mouse_pos = vim.fn.getmousepos()
+    local clicked_buf = vim.api.nvim_win_get_buf(mouse_pos.winid)
+
+    if not state.conflicted_bufs[clicked_buf] then
       return "<LeftMouse>"
     end
 
-    local mouse_pos = vim.fn.getmousepos()
     local screen_pos = vim.fn.screenpos(mouse_pos.winid, mouse_pos.line, 0)
 
     -- clicked real line
@@ -106,7 +107,7 @@ function M.setup()
       return "<LeftMouse>"
     end
 
-    local hunks = state.hunks[bufnr]
+    local hunks = state.hunks[clicked_buf]
     if not hunks or #hunks == 0 then
       return "<LeftMouse>"
     end
@@ -121,20 +122,23 @@ function M.setup()
           col >= accept_current_range.lower
           and col <= accept_current_range.upper
         then
-          _accept_hunk(bufnr, hunk, "current")
+          _accept_hunk(clicked_buf, hunk, "current")
         elseif
           col >= accept_incoming_range.lower
           and col <= accept_incoming_range.upper
         then
-          _accept_hunk(bufnr, hunk, "incoming")
+          _accept_hunk(clicked_buf, hunk, "incoming")
         elseif
           col >= accept_both_range.lower and col <= accept_both_range.upper
         then
-          _accept_hunk(bufnr, hunk, "both")
-        elseif
-          col >= accept_none_range.lower and col <= accept_none_range.upper
-        then
-          _accept_hunk(bufnr, hunk, "none")
+          _accept_hunk(clicked_buf, hunk, "both")
+        end
+        local current_buf = vim.api.nvim_get_current_buf()
+        if clicked_buf ~= current_buf then
+          -- move cursor over to clicked window
+          vim.schedule(function()
+            vim.api.nvim_set_current_win(mouse_pos.winid)
+          end)
         end
         return ""
       end
