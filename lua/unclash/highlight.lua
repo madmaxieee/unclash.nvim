@@ -8,6 +8,7 @@
 ---@field separator string
 ---@field action_line string
 ---@field action_button string
+---@field annotation string
 
 local M = {
   ---@type UnclashHlGroups
@@ -21,6 +22,7 @@ local M = {
     separator = "UnclashSeparator",
     action_line = "UnclashActionLine",
     action_button = "UnclashActionButton",
+    annotation = "UnclashAnnotation",
   },
 }
 
@@ -82,6 +84,7 @@ local default_colors = {
   separator = { bg = "#333333" },
   action_line = { bg = "#252A3F" },
   action_button = { fg = "#636da6", bg = "#252A3F", underline = true },
+  annotation = { link = "NonText" },
 }
 
 local function setup_hl_groups()

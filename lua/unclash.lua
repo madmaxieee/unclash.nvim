@@ -100,5 +100,4 @@ return M
 -- TODO: add snakcs picker to find conflict location
 -- TODO: write readme
 -- TODO: show warning if rg is not present?
--- TODO: use in-process LSP to provide code actions for resolving conflicts?
 -- TODO: implement vscode-like merge editor

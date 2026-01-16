@@ -137,6 +137,18 @@ function M.highlight_conflicts(bufnr, conflicts)
   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
   for _, conflict in ipairs(conflicts) do
     action_line.draw_action_line(bufnr, conflict.current.line)
+    vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.current.line - 1, 0, {
+      virt_text = { { "(Current Change)", hl.groups.annotation } },
+      virt_text_pos = "eol",
+      right_gravity = false,
+      hl_mode = "combine",
+    })
+    vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.incoming.line - 1, 0, {
+      virt_text = { { "(Incoming Change)", hl.groups.annotation } },
+      virt_text_pos = "eol",
+      right_gravity = false,
+      hl_mode = "combine",
+    })
     hl.hl_lines(bufnr, {
       start_line = conflict.current.line,
       end_line = conflict.current.line,
