@@ -1,0 +1,30 @@
+two way diff:
+
+<<<<<<< current
+current content 1
+current content 2
+=======
+incoming content 1
+incoming content 2
+incoming content 3
+incoming content 4
+>>>>>>> incoming
+
+three way diff
+
+<<<<<<< current
+current content 1
+current content 2
+base content 1
+base content 2
+||||||| base
+base content 1
+base content 2
+=======
+base content 1
+base content 2
+incoming content 1
+incoming content 2
+incoming content 3
+incoming content 4
+>>>>>>> incoming
