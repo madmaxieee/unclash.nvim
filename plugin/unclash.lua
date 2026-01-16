@@ -1,3 +1,4 @@
+local unclash = require("unclash")
 local state = require("unclash.state")
 local hl = require("unclash.highlight")
 local action_line = require("unclash.action_line")
@@ -36,6 +37,34 @@ vim.api.nvim_create_autocmd({ "BufRead", "TextChanged" }, {
       conflict.highlight_conflicts(args.buf, hunks)
     end
   end,
+})
+
+vim.api.nvim_create_user_command("UnclashAcceptCurrent", function()
+  unclash.accept_current()
+end, {
+  desc = "Accept current changes in the conflict hunk under the cursor",
+  nargs = 0,
+})
+
+vim.api.nvim_create_user_command("UnclashAcceptIncoming", function()
+  unclash.accept_incoming()
+end, {
+  desc = "Accept incoming changes in the conflict hunk under the cursor",
+  nargs = 0,
+})
+
+vim.api.nvim_create_user_command("UnclashAcceptBoth", function()
+  unclash.accept_both()
+end, {
+  desc = "Accept both changes in the conflict hunk under the cursor",
+  nargs = 0,
+})
+
+vim.api.nvim_create_user_command("UnclashAcceptNone", function()
+  unclash.accept_none()
+end, {
+  desc = "Accept none of the changes in the conflict hunk under the cursor",
+  nargs = 0,
 })
 
 hl.setup()

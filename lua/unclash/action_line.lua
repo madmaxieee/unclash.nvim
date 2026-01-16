@@ -33,7 +33,7 @@ local accept_none_range = {
 ---@param bufnr integer
 ---@param hunk ConflictHunk
 ---@param action "current" | "incoming" | "both" | "none"
-local function accept_hunk(bufnr, hunk, action)
+function M.accept_hunk(bufnr, hunk, action)
   local lines
   if action == "current" then
     lines = vim.api.nvim_buf_get_lines(
@@ -77,31 +77,6 @@ local function accept_hunk(bufnr, hunk, action)
   )
 end
 
----@param opts? {wrap?: boolean, bottom?: boolean}
-function M.next_conflict(opts)
-  opts = opts or {}
-  local bufnr = vim.api.nvim_get_current_buf()
-  local hunks = state.hunks[bufnr]
-  if not hunks or #hunks == 0 then
-    vim.notify("No conflicts detected in this file", vim.log.levels.INFO)
-    return
-  end
-  local cursor = vim.api.nvim_win_get_cursor(0)
-  local marker_type = opts.bottom and "incoming" or "current"
-  for _, hunk in ipairs(hunks) do
-    if hunk[marker_type].line > cursor[1] then
-      vim.api.nvim_win_set_cursor(0, { hunk[marker_type].line, 0 })
-      return
-    end
-  end
-  -- wrap around to the first hunk
-  if opts.wrap then
-    if hunks and #hunks > 0 then
-      vim.api.nvim_win_set_cursor(0, { hunks[1].current.line, 0 })
-    end
-  end
-end
-
 ---@param bufnr integer
 ---@param line integer
 function M.draw_action_line(bufnr, line)
@@ -120,6 +95,8 @@ function M.draw_action_line(bufnr, line)
     virt_lines_above = true,
   })
 end
+
+local _accept_hunk = vim.schedule_wrap(M.accept_hunk)
 
 function M.setup()
   -- run callbacks on virtual line clicks
@@ -153,20 +130,20 @@ function M.setup()
           col >= accept_current_range.lower
           and col <= accept_current_range.upper
         then
-          vim.schedule_wrap(accept_hunk)(bufnr, hunk, "current")
+          _accept_hunk(bufnr, hunk, "current")
         elseif
           col >= accept_incoming_range.lower
           and col <= accept_incoming_range.upper
         then
-          vim.schedule_wrap(accept_hunk)(bufnr, hunk, "incoming")
+          _accept_hunk(bufnr, hunk, "incoming")
         elseif
           col >= accept_both_range.lower and col <= accept_both_range.upper
         then
-          vim.schedule_wrap(accept_hunk)(bufnr, hunk, "both")
+          _accept_hunk(bufnr, hunk, "both")
         elseif
           col >= accept_none_range.lower and col <= accept_none_range.upper
         then
-          vim.schedule_wrap(accept_hunk)(bufnr, hunk, "none")
+          _accept_hunk(bufnr, hunk, "none")
         end
         return ""
       end
