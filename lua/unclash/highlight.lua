@@ -24,7 +24,7 @@ local M = {
   },
 }
 
-local ns = vim.api.nvim_create_namespace("UnClash")
+local ns = require("unclash.constant").ns
 
 ---@alias RGB [number, number, number]
 
