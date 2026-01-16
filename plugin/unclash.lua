@@ -3,8 +3,7 @@ local hl = require("unclash.highlight")
 local action_line = require("unclash.action_line")
 local conflict = require("unclash.conflict")
 
-local augroup =
-  vim.api.nvim_create_augroup("ConflictDetection", { clear = true })
+local augroup = vim.api.nvim_create_augroup("Unclash", { clear = true })
 
 vim.api.nvim_create_autocmd(
   { "VimEnter", "FileChangedShellPost", "DirChanged" },

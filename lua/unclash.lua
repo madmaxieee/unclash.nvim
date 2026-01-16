@@ -1,5 +1,7 @@
 local M = {}
 
+local state = require("unclash.state")
+
 ---@param opts? {wrap?: boolean, bottom?: boolean}
 function M.next_conflict(opts)
   opts = opts or {}
