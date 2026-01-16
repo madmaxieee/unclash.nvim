@@ -7,7 +7,6 @@ local hl = require("unclash.highlight")
 local ACCEPT_CURRENT = "[Accept Current]"
 local ACCEPT_INCOMING = "[Accept Incoming]"
 local ACCEPT_BOTH = "[Accept Both]"
-local ACCEPT_NONE = "[Accept None]"
 
 local _cursor = 0
 local accept_current_range = {
@@ -25,14 +24,10 @@ local accept_both_range = {
   upper = _cursor + #ACCEPT_BOTH - 1,
 }
 _cursor = _cursor + #ACCEPT_BOTH + 1
-local accept_none_range = {
-  lower = _cursor,
-  upper = _cursor + #ACCEPT_NONE - 1,
-}
 
 ---@param bufnr integer
 ---@param hunk ConflictHunk
----@param action "current" | "incoming" | "both" | "none"
+---@param action "current" | "incoming" | "both"
 function M.accept_hunk(bufnr, hunk, action)
   local lines
   if action == "current" then
@@ -63,8 +58,6 @@ function M.accept_hunk(bufnr, hunk, action)
       false
     )
     lines = vim.list_extend(current_lines, incoming_lines)
-  elseif action == "none" then
-    lines = {}
   else
     error("Unknown action: " .. action)
   end
@@ -88,8 +81,6 @@ function M.draw_action_line(bufnr, line)
         { ACCEPT_INCOMING, hl.groups.action_button },
         { " ", hl.groups.action_line },
         { ACCEPT_BOTH, hl.groups.action_button },
-        { " ", hl.groups.action_line },
-        { ACCEPT_NONE, hl.groups.action_button },
       },
     },
     virt_lines_above = true,

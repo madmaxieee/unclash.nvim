@@ -60,12 +60,5 @@ end, {
   nargs = 0,
 })
 
-vim.api.nvim_create_user_command("UnclashAcceptNone", function()
-  unclash.accept_none()
-end, {
-  desc = "Accept none of the changes in the conflict hunk under the cursor",
-  nargs = 0,
-})
-
 hl.setup()
 action_line.setup()

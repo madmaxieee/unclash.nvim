@@ -3,7 +3,7 @@ local M = {}
 local state = require("unclash.state")
 local action_line = require("unclash.action_line")
 
----@param action "current" | "incoming" | "both" | "none"
+---@param action "current" | "incoming" | "both"
 function M.accept(action)
   local bufnr = vim.api.nvim_get_current_buf()
   local cursor = vim.api.nvim_win_get_cursor(0)
@@ -37,10 +37,6 @@ end
 
 function M.accept_both()
   M.accept("both")
-end
-
-function M.accept_none()
-  M.accept("none")
 end
 
 ---@param opts? {wrap?: boolean, bottom?: boolean}
