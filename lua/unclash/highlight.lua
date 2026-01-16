@@ -75,24 +75,32 @@ local function blend_fg(color, amount)
   return blend(color, amount, fg)
 end
 
-local default_colors = {
-  current = { bg = "#2A4556" }, -- DiffAdd
-  base = { bg = "#252A3F" }, -- DiffChange
-  incoming = { bg = "#394B70" }, -- DiffText
-  action_line = { bg = "#252A3F" },
-  action_button = { fg = "#636da6", bg = "#252A3F", underline = true },
-  annotation = { link = "NonText" },
+local hl_links = {
+  current = "DiffAdd",
+  base = "DiffChange",
+  incoming = "DiffText",
+  action_line = "DiffChange",
+  annotation = "NonText",
 }
 
 local function setup_hl_groups()
-  for group, color in pairs(default_colors) do
+  for group, link in pairs(hl_links) do
     local hl_group = M.groups[group]
-    vim.api.nvim_set_hl(0, hl_group, color)
+    vim.api.nvim_set_hl(0, hl_group, { link = link })
     if group == "current" or group == "base" or group == "incoming" then
-      local marker_bg = blend_bg(color.bg, 0.4)
+      local c = vim.api.nvim_get_hl(0, { name = link })
+      local marker_bg = blend_bg(c.bg, 0.4)
       vim.api.nvim_set_hl(0, hl_group .. "Marker", { bg = marker_bg })
     end
   end
+
+  local comment_fg = vim.api.nvim_get_hl(0, { name = "Comment" }).fg
+  local diff_change_bg = vim.api.nvim_get_hl(0, { name = "DiffChange" }).bg
+  vim.api.nvim_set_hl(0, M.groups.action_button, {
+    fg = comment_fg,
+    bg = diff_change_bg,
+    underline = true,
+  })
 end
 
 function M.setup()
