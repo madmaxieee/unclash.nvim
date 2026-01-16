@@ -178,13 +178,14 @@ local function highlight_conflicts(bufnr, conflicts)
   end
 end
 
----Update extmarks for a conflicted buffer
 ---@param bufnr integer
-local function update_extmarks(bufnr)
-  local file = vim.api.nvim_buf_get_name(bufnr)
+---@param opts? {force:boolean}
+---@return ConflictHunk[]
+local function detect_conflicts(bufnr, opts)
+  opts = opts or {}
 
-  if not state.conflicted_files[file] then
-    return
+  if not opts.force and not state.conflicted_bufs then
+    return {}
   end
 
   local markers = find_markers(bufnr)
@@ -280,7 +281,32 @@ local function update_extmarks(bufnr)
   end
 
   state.hunks[bufnr] = hunks
-  highlight_conflicts(bufnr, hunks)
+  return hunks
+end
+
+---@param opts? {wrap?: boolean, bottom?: boolean}
+function M.next_conflict(opts)
+  opts = opts or {}
+  local bufnr = vim.api.nvim_get_current_buf()
+  local hunks = state.hunks[bufnr]
+  if not hunks or #hunks == 0 then
+    vim.notify("No conflicts detected in this file", vim.log.levels.INFO)
+    return
+  end
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local marker_type = opts.bottom and "incoming" or "current"
+  for _, hunk in ipairs(hunks) do
+    if hunk[marker_type].line > cursor[1] then
+      vim.api.nvim_win_set_cursor(0, { hunk[marker_type].line, 0 })
+      return
+    end
+  end
+  -- wrap around to the last hunk
+  if opts.wrap then
+    if hunks and #hunks > 0 then
+      vim.api.nvim_win_set_cursor(0, { hunks[1].current.line, 0 })
+    end
+  end
 end
 
 ---@param opts? {wrap?: boolean, bottom?: boolean}
@@ -329,9 +355,9 @@ function M.setup()
     desc = "Detect if the opened file is conflicted",
     callback = function(args)
       local file = vim.api.nvim_buf_get_name(args.buf)
-      local conflicted_files = detect_conflicted_files(file)
-      state.conflicted_files[file] = conflicted_files[file] or nil
-      state.conflicted_bufs[args.buf] = conflicted_files[file] or nil
+      if state.conflicted_files[file] then
+        state.conflicted_bufs[args.buf] = true
+      end
     end,
   })
 
@@ -339,25 +365,10 @@ function M.setup()
     group = augroup,
     desc = "Apply highlighting to conflicted files",
     callback = function(args)
-      update_extmarks(args.buf)
+      local hunks = detect_conflicts(args.buf)
+      highlight_conflicts(args.buf, hunks)
     end,
   })
-
-  vim.keymap.set("n", "]x", function()
-    M.next_conflict({ wrap = true })
-  end, { desc = "Go to next conflict" })
-
-  vim.keymap.set("n", "[x", function()
-    M.prev_conflict({ wrap = true })
-  end, { desc = "Go to previous conflict" })
-
-  vim.keymap.set("n", "]X", function()
-    M.next_conflict({ wrap = true, bottom = true })
-  end, { desc = "Go to next conflict (bottom marker)" })
-
-  vim.keymap.set("n", "[X", function()
-    M.prev_conflict({ wrap = true, bottom = true })
-  end, { desc = "Go to previous conflict (bottom marker)" })
 
   hl.setup()
   action_line.setup()
@@ -368,5 +379,7 @@ return M
 -- TODO: add accept action api for keymap and commands
 -- TODO: read from predefined DiffAdd colors
 -- TODO: add snakcs picker to find conflict location
+-- TODO: write readme
+-- TODO: show warning if rg is not present?
 -- TODO: use in-process LSP to provide code actions for resolving conflicts?
 -- TODO: implement vscode-like merge editor
