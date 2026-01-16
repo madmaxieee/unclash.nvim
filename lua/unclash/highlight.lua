@@ -5,7 +5,6 @@
 ---@field base_marker string
 ---@field incoming string
 ---@field incoming_marker string
----@field separator string
 ---@field action_line string
 ---@field action_button string
 ---@field annotation string
@@ -19,7 +18,6 @@ local M = {
     base_marker = "UnclashBaseMarker",
     incoming = "UnclashIncoming",
     incoming_marker = "UnclashIncomingMarker",
-    separator = "UnclashSeparator",
     action_line = "UnclashActionLine",
     action_button = "UnclashActionButton",
     annotation = "UnclashAnnotation",
@@ -78,10 +76,9 @@ local function blend_fg(color, amount)
 end
 
 local default_colors = {
-  current = { bg = "#2A4556" },
-  base = { bg = "#394B70" },
-  incoming = { bg = "#4B2A3D" },
-  separator = { bg = "#333333" },
+  current = { bg = "#2A4556" }, -- DiffAdd
+  base = { bg = "#252A3F" }, -- DiffChange
+  incoming = { bg = "#394B70" }, -- DiffText
   action_line = { bg = "#252A3F" },
   action_button = { fg = "#636da6", bg = "#252A3F", underline = true },
   annotation = { link = "NonText" },
