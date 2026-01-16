@@ -92,8 +92,6 @@ end
 
 return M
 
--- TODO: read from predefined DiffAdd colors
--- TODO: add snakcs picker to find conflict location
+-- TODO: add snacks picker to find conflict location
 -- TODO: write readme
--- TODO: show warning if rg is not present?
--- TODO: implement vscode-like merge editor
+-- TODO: build vscode-like merge editor

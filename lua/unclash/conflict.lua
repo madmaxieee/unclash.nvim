@@ -22,14 +22,25 @@ local INCOMING_MARKER = ">>>>>>>"
 ---@field separator Marker[]
 ---@field incoming Marker[]
 
+local has_rg = vim.fn.executable("rg") == 1
+
 ---@param path string a directory or a single file
 ---@return table<string, boolean> conflicted files
 function M.detect_conflicted_files(path)
-  local jobs = {
-    vim.system({ "rg", "-l", "^<{7}", path }),
-    vim.system({ "rg", "-l", "^={7}", path }),
-    vim.system({ "rg", "-l", "^>{7}", path }),
-  }
+  local jobs
+  if has_rg then
+    jobs = {
+      vim.system({ "rg", "-l", "^<{7}", path }),
+      vim.system({ "rg", "-l", "^={7}", path }),
+      vim.system({ "rg", "-l", "^>{7}", path }),
+    }
+  else
+    jobs = {
+      vim.system({ "grep", "-rl", "^<<<<<<<", path }),
+      vim.system({ "grep", "-rl", "^=======", path }),
+      vim.system({ "grep", "-rl", "^>>>>>>>", path }),
+    }
+  end
 
   local job_results = {}
   for i, job in ipairs(jobs) do

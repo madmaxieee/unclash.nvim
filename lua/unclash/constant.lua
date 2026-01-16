@@ -1,3 +1,3 @@
 return {
-  ns = vim.api.nvim_create_namespace("UnClash"),
+  ns = vim.api.nvim_create_namespace("Unclash"),
 }
