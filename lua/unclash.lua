@@ -1,9 +1,8 @@
 local M = {}
 
-local state = require("unclash.state")
-local action_line = require("unclash.action_line")
 local conflict = require("unclash.conflict")
 local merge_editor = require("unclash.merge_editor")
+local state = require("unclash.state")
 local utils = require("unclash.utils")
 
 ---@param action "current" | "incoming" | "both"
@@ -23,7 +22,7 @@ function M.accept(action)
   end
 
   local ok, err = pcall(function()
-    action_line.accept_hunk(bufnr, hunk, action)
+    utils.accept_hunk(bufnr, hunk, action)
   end)
   if not ok then
     vim.notify("Failed to accept changes: " .. err, vim.log.levels.ERROR)
@@ -132,4 +131,3 @@ end
 return M
 
 -- TODO: write readme
--- TODO: build vscode-like merge editor

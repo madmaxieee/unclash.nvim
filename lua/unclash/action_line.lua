@@ -1,12 +1,15 @@
 local M = {}
 
-local state = require("unclash.state")
-local ns = require("unclash.constant").ns
 local hl = require("unclash.highlight")
+local state = require("unclash.state")
+local utils = require("unclash.utils")
+
+local ns = require("unclash.constant").ns
 
 local ACCEPT_CURRENT = "[Accept Current]"
 local ACCEPT_INCOMING = "[Accept Incoming]"
 local ACCEPT_BOTH = "[Accept Both]"
+local OPEN_MERGE_EDITOR = "[Open Merge Editor]"
 
 local _cursor = 0
 local accept_current_range = {
@@ -24,61 +27,10 @@ local accept_both_range = {
   upper = _cursor + #ACCEPT_BOTH - 1,
 }
 _cursor = _cursor + #ACCEPT_BOTH + 1
-
----@param bufnr integer
----@param hunk ConflictHunk
----@param action "current" | "incoming" | "both" | "base"
-function M.accept_hunk(bufnr, hunk, action)
-  local lines
-  if action == "current" then
-    lines = vim.api.nvim_buf_get_lines(
-      bufnr,
-      (hunk.current.line + 1) - 1,
-      (hunk.base and hunk.base.line or hunk.separator.line) - 1,
-      false
-    )
-  elseif action == "incoming" then
-    lines = vim.api.nvim_buf_get_lines(
-      bufnr,
-      (hunk.separator.line + 1) - 1,
-      hunk.incoming.line - 1,
-      false
-    )
-  elseif action == "both" then
-    local current_lines = vim.api.nvim_buf_get_lines(
-      bufnr,
-      (hunk.current.line + 1) - 1,
-      (hunk.base and hunk.base.line or hunk.separator.line) - 1,
-      false
-    )
-    local incoming_lines = vim.api.nvim_buf_get_lines(
-      bufnr,
-      (hunk.separator.line + 1) - 1,
-      hunk.incoming.line - 1,
-      false
-    )
-    lines = vim.list_extend(current_lines, incoming_lines)
-  elseif action == "base" then
-    if not hunk.base then
-      error("Hunk has no base to accept")
-    end
-    lines = vim.api.nvim_buf_get_lines(
-      bufnr,
-      (hunk.base.line + 1) - 1,
-      hunk.separator.line - 1,
-      false
-    )
-  else
-    error("Unknown action: " .. action)
-  end
-  vim.api.nvim_buf_set_lines(
-    bufnr,
-    hunk.current.line - 1,
-    (hunk.incoming.line + 1) - 1,
-    false,
-    lines
-  )
-end
+local open_merge_editor_range = {
+  lower = _cursor,
+  upper = _cursor + #OPEN_MERGE_EDITOR - 1,
+}
 
 ---@param bufnr integer
 ---@param line integer
@@ -91,13 +43,15 @@ function M.draw_action_line(bufnr, line)
         { ACCEPT_INCOMING, hl.groups.action_button },
         { " ", hl.groups.action_line },
         { ACCEPT_BOTH, hl.groups.action_button },
+        { " ", hl.groups.action_line },
+        { OPEN_MERGE_EDITOR, hl.groups.merge_editor_button },
       },
     },
     virt_lines_above = true,
   })
 end
 
-local _accept_hunk = vim.schedule_wrap(M.accept_hunk)
+local _accept_hunk = vim.schedule_wrap(utils.accept_hunk)
 
 function M.setup()
   -- run callbacks on virtual line clicks
@@ -142,6 +96,17 @@ function M.setup()
           col >= accept_both_range.lower and col <= accept_both_range.upper
         then
           _accept_hunk(clicked_buf, hunk, "both")
+        elseif
+          col >= open_merge_editor_range.lower
+          and col <= open_merge_editor_range.upper
+        then
+          vim.schedule(function()
+            require("unclash.merge_editor").open_merge_editor(
+              clicked_buf,
+              mouse_pos.line
+            )
+          end)
+          return
         end
         local current_buf = vim.api.nvim_get_current_buf()
         if clicked_buf ~= current_buf then

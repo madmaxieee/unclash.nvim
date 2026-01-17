@@ -7,6 +7,7 @@
 ---@field incoming_marker string
 ---@field action_line string
 ---@field action_button string
+---@field merge_editor_button string
 ---@field annotation string
 
 local M = {
@@ -20,6 +21,7 @@ local M = {
     incoming_marker = "UnclashIncomingMarker",
     action_line = "UnclashActionLine",
     action_button = "UnclashActionButton",
+    merge_editor_button = "UnclashMergeEditorButton",
     annotation = "UnclashAnnotation",
   },
 }
@@ -100,6 +102,12 @@ local function setup_hl_groups()
     fg = comment_fg,
     bg = diff_change_bg,
     underline = true,
+  })
+  vim.api.nvim_set_hl(0, M.groups.merge_editor_button, {
+    fg = blend_fg(comment_fg, 0.5),
+    bg = diff_change_bg,
+    underline = true,
+    bold = true,
   })
 end
 

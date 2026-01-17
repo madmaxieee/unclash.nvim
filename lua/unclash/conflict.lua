@@ -1,9 +1,7 @@
 local M = {}
 
-local state = require("unclash.state")
-local ns = require("unclash.constant").ns
 local hl = require("unclash.highlight")
-local action_line = require("unclash.action_line")
+local ns = require("unclash.constant").ns
 
 local CURRENT_MARKER = "<<<<<<<"
 local BASE_MARKER = "|||||||"
@@ -147,7 +145,10 @@ function M.highlight_conflicts(bufnr, conflicts)
   -- clear previous extmarks
   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
   for _, conflict in ipairs(conflicts) do
-    action_line.draw_action_line(bufnr, conflict.current.line)
+    require("unclash.action_line").draw_action_line(
+      bufnr,
+      conflict.current.line
+    )
     vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.current.line - 1, 0, {
       virt_text = { { "(Current Change)", hl.groups.annotation } },
       virt_text_pos = "eol",

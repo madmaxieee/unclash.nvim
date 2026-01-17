@@ -1,8 +1,7 @@
 local M = {}
 
-local action_line = require("unclash.action_line")
 local conflict = require("unclash.conflict")
-local highlight = require("unclash.highlight")
+local hl = require("unclash.highlight")
 local state = require("unclash.state")
 local utils = require("unclash.utils")
 
@@ -96,28 +95,28 @@ function M.open_merge_editor(bufnr, lnum)
     - hunk.current.line
     - 1
   vim.api.nvim_buf_set_lines(current_change_buf, 0, -1, false, all_lines)
-  action_line.accept_hunk(current_change_buf, hunk, "current")
+  utils.accept_hunk(current_change_buf, hunk, "current")
   vim.api.nvim_buf_set_extmark(current_change_buf, ns, start_line - 1, 0, {
-    virt_lines = { { { "Current Change", highlight.groups.annotation } } },
+    virt_lines = { { { "Current Change", hl.groups.annotation } } },
     virt_lines_above = true,
   })
   vim.api.nvim_buf_set_extmark(current_change_buf, ns, start_line - 1, 0, {
     end_line = start_line + current_change_lines - 1,
-    hl_group = highlight.groups.current,
+    hl_group = hl.groups.current,
     hl_eol = true,
   })
   vim.bo[current_change_buf].modifiable = false
 
   local incoming_change_lines = hunk.incoming.line - hunk.separator.line - 1
   vim.api.nvim_buf_set_lines(incoming_change_buf, 0, -1, false, all_lines)
-  action_line.accept_hunk(incoming_change_buf, hunk, "incoming")
+  utils.accept_hunk(incoming_change_buf, hunk, "incoming")
   vim.api.nvim_buf_set_extmark(incoming_change_buf, ns, start_line - 1, 0, {
-    virt_lines = { { { "Incoming Change", highlight.groups.annotation } } },
+    virt_lines = { { { "Incoming Change", hl.groups.annotation } } },
     virt_lines_above = true,
   })
   vim.api.nvim_buf_set_extmark(incoming_change_buf, ns, start_line - 1, 0, {
     end_line = start_line + incoming_change_lines - 1,
-    hl_group = highlight.groups.incoming,
+    hl_group = hl.groups.incoming,
     hl_eol = true,
   })
   vim.bo[incoming_change_buf].modifiable = false
@@ -126,17 +125,17 @@ function M.open_merge_editor(bufnr, lnum)
   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
   if hunk.base then
     local base_change_lines = hunk.separator.line - hunk.base.line - 1
-    action_line.accept_hunk(bufnr, hunk, "base")
+    utils.accept_hunk(bufnr, hunk, "base")
     vim.api.nvim_buf_set_extmark(bufnr, ns, start_line - 1, 0, {
       end_line = start_line + base_change_lines - 1,
-      hl_group = highlight.groups.current,
+      hl_group = hl.groups.current,
       hl_eol = true,
     })
   else
-    action_line.accept_hunk(bufnr, hunk, "current")
+    utils.accept_hunk(bufnr, hunk, "current")
     vim.api.nvim_buf_set_extmark(bufnr, ns, start_line - 1, 0, {
       end_line = start_line + current_change_lines - 1,
-      hl_group = highlight.groups.current,
+      hl_group = hl.groups.current,
       hl_eol = true,
     })
   end
