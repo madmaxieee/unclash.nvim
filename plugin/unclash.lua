@@ -34,6 +34,7 @@ vim.api.nvim_create_autocmd({ "BufRead", "TextChanged" }, {
   callback = function(args)
     if state.conflicted_bufs[args.buf] then
       local hunks = conflict.detect_conflicts(args.buf)
+      state.hunks[args.buf] = hunks
       conflict.highlight_conflicts(args.buf, hunks)
     end
   end,
@@ -57,6 +58,22 @@ vim.api.nvim_create_user_command("UnclashAcceptBoth", function()
   unclash.accept_both()
 end, {
   desc = "Accept both changes in the conflict hunk under the cursor",
+  nargs = 0,
+})
+
+vim.api.nvim_create_user_command("UnclashQf", function()
+  unclash.set_qflist()
+  vim.cmd("copen")
+end, {
+  desc = "Set the quickfix list with all conflicts",
+  nargs = 0,
+})
+
+vim.api.nvim_create_user_command("UnclashTrouble", function()
+  unclash.set_qflist()
+  vim.cmd("Trouble qflist")
+end, {
+  desc = "Set the quickfix list with all conflicts",
   nargs = 0,
 })
 

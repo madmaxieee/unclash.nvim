@@ -296,7 +296,6 @@ function M.detect_conflicts(bufnr)
     ::continue::
   end
 
-  state.hunks[bufnr] = hunks
   return hunks
 end
 

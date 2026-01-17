@@ -2,6 +2,7 @@ local M = {}
 
 local state = require("unclash.state")
 local action_line = require("unclash.action_line")
+local conflict = require("unclash.conflict")
 
 ---@param action "current" | "incoming" | "both"
 function M.accept(action)
@@ -90,8 +91,33 @@ function M.prev_conflict(opts)
   end
 end
 
+function M.set_qflist()
+  local items = {}
+  for file, _ in pairs(state.conflicted_files) do
+    local uri = vim.uri_from_fname(file)
+    local bufnr = vim.uri_to_bufnr(uri)
+    if not vim.api.nvim_buf_is_loaded(bufnr) then
+      vim.fn.bufload(bufnr)
+    end
+    if not (state.hunks[bufnr] and #state.hunks[bufnr] > 0) then
+      state.hunks[bufnr] = conflict.detect_conflicts(bufnr)
+    end
+    for _, hunk in ipairs(state.hunks[bufnr]) do
+      table.insert(items, {
+        filename = file,
+        lnum = hunk.current.line,
+        end_lnum = hunk.incoming.line,
+        text = "Conflict detected",
+      })
+    end
+  end
+  vim.fn.setqflist({}, " ", {
+    title = "Unclash Conflicts",
+    items = items,
+  })
+end
+
 return M
 
--- TODO: add snacks picker to find conflict location
 -- TODO: write readme
 -- TODO: build vscode-like merge editor
