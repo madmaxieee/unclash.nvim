@@ -3,6 +3,8 @@ local M = {}
 local state = require("unclash.state")
 local action_line = require("unclash.action_line")
 local conflict = require("unclash.conflict")
+local merge_editor = require("unclash.merge_editor")
+local utils = require("unclash.utils")
 
 ---@param action "current" | "incoming" | "both"
 function M.accept(action)
@@ -13,19 +15,19 @@ function M.accept(action)
     vim.notify("No conflicts detected in this file", vim.log.levels.INFO)
     return
   end
-  for _, hunk in ipairs(hunks) do
-    if cursor[1] >= hunk.current.line and cursor[1] <= hunk.incoming.line then
-      -- cursor is within this hunk
-      local ok, err = pcall(function()
-        action_line.accept_hunk(bufnr, hunk, action)
-      end)
-      if not ok then
-        vim.notify("Failed to accept changes: " .. err, vim.log.levels.ERROR)
-      end
-      return
-    end
+
+  local hunk = utils.hunk_from_lnum(bufnr, cursor[1])
+  if not hunk then
+    vim.notify("Cursor is not within a conflict hunk", vim.log.levels.WARN)
+    return
   end
-  vim.notify("Cursor is not within a conflict hunk", vim.log.levels.WARN)
+
+  local ok, err = pcall(function()
+    action_line.accept_hunk(bufnr, hunk, action)
+  end)
+  if not ok then
+    vim.notify("Failed to accept changes: " .. err, vim.log.levels.ERROR)
+  end
 end
 
 function M.accept_current()
@@ -115,6 +117,16 @@ function M.set_qflist()
     title = "Unclash Conflicts",
     items = items,
   })
+end
+
+function M.open_merge_editor()
+  local bufnr = vim.api.nvim_get_current_buf()
+  if not state.conflicted_bufs[bufnr] then
+    vim.notify("Current buffer is not a conflicted file", vim.log.levels.WARN)
+    return
+  end
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  merge_editor.open_merge_editor(bufnr, cursor[1])
 end
 
 return M

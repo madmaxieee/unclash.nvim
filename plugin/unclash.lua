@@ -3,6 +3,7 @@ local state = require("unclash.state")
 local hl = require("unclash.highlight")
 local action_line = require("unclash.action_line")
 local conflict = require("unclash.conflict")
+local merge_editor = require("unclash.merge_editor")
 
 local augroup = vim.api.nvim_create_augroup("Unclash", { clear = true })
 
@@ -32,6 +33,9 @@ vim.api.nvim_create_autocmd({ "BufRead", "TextChanged" }, {
   group = augroup,
   desc = "Apply highlighting to conflicted files",
   callback = function(args)
+    if merge_editor.is_active() then
+      return
+    end
     if state.conflicted_bufs[args.buf] then
       local hunks = conflict.detect_conflicts(args.buf)
       state.hunks[args.buf] = hunks
@@ -77,5 +81,13 @@ end, {
   nargs = 0,
 })
 
+vim.api.nvim_create_user_command("UnclashOpenMergeEditor", function()
+  unclash.open_merge_editor()
+end, {
+  desc = "Open the merge editor for the current conflicted file",
+  nargs = 0,
+})
+
 hl.setup()
 action_line.setup()
+merge_editor.setup()

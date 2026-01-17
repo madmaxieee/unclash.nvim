@@ -27,7 +27,7 @@ _cursor = _cursor + #ACCEPT_BOTH + 1
 
 ---@param bufnr integer
 ---@param hunk ConflictHunk
----@param action "current" | "incoming" | "both"
+---@param action "current" | "incoming" | "both" | "base"
 function M.accept_hunk(bufnr, hunk, action)
   local lines
   if action == "current" then
@@ -58,6 +58,16 @@ function M.accept_hunk(bufnr, hunk, action)
       false
     )
     lines = vim.list_extend(current_lines, incoming_lines)
+  elseif action == "base" then
+    if not hunk.base then
+      error("Hunk has no base to accept")
+    end
+    lines = vim.api.nvim_buf_get_lines(
+      bufnr,
+      (hunk.base.line + 1) - 1,
+      hunk.separator.line - 1,
+      false
+    )
   else
     error("Unknown action: " .. action)
   end
