@@ -160,6 +160,14 @@ function M.highlight_conflicts(bufnr, conflicts)
       right_gravity = false,
       hl_mode = "combine",
     })
+    if conflict.base then
+      vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.base.line - 1, 0, {
+        virt_text = { { "(Base)", hl.groups.annotation } },
+        virt_text_pos = "eol",
+        right_gravity = false,
+        hl_mode = "combine",
+      })
+    end
     hl.hl_lines(bufnr, {
       start_line = conflict.current.line,
       end_line = conflict.current.line,
