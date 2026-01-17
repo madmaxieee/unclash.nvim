@@ -8,12 +8,12 @@ local merge_editor = require("unclash.merge_editor")
 local augroup = vim.api.nvim_create_augroup("Unclash", { clear = true })
 
 vim.api.nvim_create_autocmd(
-  { "VimEnter", "FileChangedShellPost", "DirChanged" },
+  { "VimEnter", "FileChangedShellPost", "DirChanged", "FocusGained" },
   {
     group = augroup,
     desc = "Detect conflicted files in the current working directory on startup",
     callback = function()
-      state.conflicted_files = conflict.detect_conflicted_files(vim.fn.getcwd())
+      unclash.refresh({ silent = true })
     end,
   }
 )
@@ -62,6 +62,13 @@ vim.api.nvim_create_user_command("UnclashAcceptBoth", function()
   unclash.accept_both()
 end, {
   desc = "Accept both changes in the conflict hunk under the cursor",
+  nargs = 0,
+})
+
+vim.api.nvim_create_user_command("UnclashRefresh", function()
+  unclash.refresh()
+end, {
+  desc = "Force refresh of conflicted files status",
   nargs = 0,
 })
 

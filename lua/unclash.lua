@@ -128,4 +128,34 @@ function M.open_merge_editor()
   merge_editor.open_merge_editor(bufnr, cursor[1])
 end
 
+---@param opts? {silent?: boolean}
+function M.refresh(opts)
+  opts = opts or {}
+  state.conflicted_files = conflict.detect_conflicted_files(vim.fn.getcwd())
+
+  -- Update status for all loaded buffers
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(bufnr) then
+      local file = vim.api.nvim_buf_get_name(bufnr)
+      if state.conflicted_files[file] then
+        state.conflicted_bufs[bufnr] = true
+        -- Trigger highlight update
+        local hunks = conflict.detect_conflicts(bufnr)
+        state.hunks[bufnr] = hunks
+        conflict.highlight_conflicts(bufnr, hunks)
+      else
+        -- Cleanup if it was conflicted but no longer is
+        if state.conflicted_bufs[bufnr] then
+          state.conflicted_bufs[bufnr] = nil
+          state.hunks[bufnr] = nil
+          conflict.highlight_conflicts(bufnr, {})
+        end
+      end
+    end
+  end
+  if not opts.silent then
+    vim.notify("Unclash: Refreshed conflict status", vim.log.levels.INFO)
+  end
+end
+
 return M
