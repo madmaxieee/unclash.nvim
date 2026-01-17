@@ -10,7 +10,7 @@ incoming content 3
 incoming content 4
 >>>>>>> incoming
 
-three way diff
+three way diff:
 
 <<<<<<< current
 current content 1

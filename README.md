@@ -4,6 +4,9 @@ A lightweight, feature-rich merge conflict manager for Neovim, written in Lua.
 
 `unclash.nvim` automatically detects, highlights, and helps you resolve merge conflicts with ease. It includes a 3-way merge editor, clickable actions, and seamless integration with existing tools.
 
+![highlighting](./assets/highlighting.png)
+![merge_editor](./assets/merge-editor.png)
+
 ## Features
 
 - **Automatic Detection**: Automatically detects conflicted files in your working directory and highlights them when opened.
