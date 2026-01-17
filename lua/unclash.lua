@@ -129,5 +129,3 @@ function M.open_merge_editor()
 end
 
 return M
-
--- TODO: write readme
