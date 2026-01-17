@@ -29,6 +29,8 @@ vim.api.nvim_create_autocmd("BufReadPre", {
   end,
 })
 
+local timers = {}
+
 vim.api.nvim_create_autocmd({ "BufRead", "TextChanged" }, {
   group = augroup,
   desc = "Apply highlighting to conflicted files",
@@ -37,10 +39,33 @@ vim.api.nvim_create_autocmd({ "BufRead", "TextChanged" }, {
       return
     end
     if state.conflicted_bufs[args.buf] then
-      local hunks = conflict.detect_conflicts(args.buf)
-      state.hunks[args.buf] = hunks
-      conflict.highlight_conflicts(args.buf, hunks)
+      if timers[args.buf] then
+        timers[args.buf]:stop()
+        timers[args.buf]:close()
+      end
+      timers[args.buf] = vim.defer_fn(function()
+        timers[args.buf] = nil
+        if vim.api.nvim_buf_is_valid(args.buf) then
+          local hunks = conflict.detect_conflicts(args.buf)
+          state.hunks[args.buf] = hunks
+          conflict.highlight_conflicts(args.buf, hunks)
+        end
+      end, 200)
     end
+  end,
+})
+
+vim.api.nvim_create_autocmd("BufWipeout", {
+  group = augroup,
+  desc = "Clean up state for wiped buffers",
+  callback = function(args)
+    if timers[args.buf] then
+      timers[args.buf]:stop()
+      timers[args.buf]:close()
+      timers[args.buf] = nil
+    end
+    state.hunks[args.buf] = nil
+    state.conflicted_bufs[args.buf] = nil
   end,
 })
 

@@ -5,7 +5,7 @@ local merge_editor = require("unclash.merge_editor")
 local state = require("unclash.state")
 local utils = require("unclash.utils")
 
----@param action "current" | "incoming" | "both"
+---@param action "current" | "incoming" | "both" | "base"
 function M.accept(action)
   local bufnr = vim.api.nvim_get_current_buf()
   local cursor = vim.api.nvim_win_get_cursor(0)
