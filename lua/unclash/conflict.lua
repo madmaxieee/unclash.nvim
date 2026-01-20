@@ -1,6 +1,8 @@
 local M = {}
 
 local hl = require("unclash.highlight")
+local state = require("unclash.state")
+
 local ns = require("unclash.constant").ns
 
 local CURRENT_MARKER = "<<<<<<<"
@@ -21,56 +23,54 @@ local INCOMING_MARKER = ">>>>>>>"
 ---@field incoming Marker[]
 
 local has_rg = vim.fn.executable("rg") == 1
-local TIMEOUT = 1000
+local TIMEOUT = 3000
 
 ---@param path string a directory or a single file
----@return table<string, boolean> conflicted files
-function M.detect_conflicted_files(path)
-  local jobs
-  -- TODO: Takes forever to load on massive directories, bad design
+---@param on_done fun(files: table<string, boolean>)
+---@param opts? {silent?: boolean}
+---@return nil
+function M.scan_maybe_conflicted_files(path, on_done, opts)
+  opts = opts or {}
+
+  local cmd
   if has_rg then
-    jobs = {
-      vim.system({ "rg", "-l", "^<{7}", path }, { timeout = TIMEOUT }),
-      vim.system({ "rg", "-l", "^={7}", path }, { timeout = TIMEOUT }),
-      vim.system({ "rg", "-l", "^>{7}", path }, { timeout = TIMEOUT }),
-    }
+    cmd = { "rg", "-l", "^<{7}", path }
   else
-    jobs = {
-      vim.system({ "grep", "-rl", "^<<<<<<<", path }, { timeout = TIMEOUT }),
-      vim.system({ "grep", "-rl", "^=======", path }, { timeout = TIMEOUT }),
-      vim.system({ "grep", "-rl", "^>>>>>>>", path }, { timeout = TIMEOUT }),
-    }
+    cmd = { "grep", "-rl", "^<<<<<<<", path }
   end
 
-  local job_results = {}
-  for i, job in ipairs(jobs) do
-    job_results[i] = job:wait()
-  end
-
-  for _, result in pairs(job_results) do
-    -- code 0 indicates a match was found
-    if result.code ~= 0 then
-      return {}
-    end
-  end
-
-  local candidate_files = {}
-  for _, result in ipairs(job_results) do
-    for line in vim.gsplit(result.stdout, "\n") do
-      if line ~= "" then
-        candidate_files[line] = (candidate_files[line] or 0) + 1
+  vim.system(cmd, { timeout = TIMEOUT }, function(result)
+    vim.schedule(function()
+      if result.code ~= 0 then
+        if not opts.silent then
+          -- SIGTERM or SIGKILL
+          if result.signal == 15 or result.signal == 9 then
+            vim.notify(
+              "Unclash: Scanning for conflicted files timed out",
+              vim.log.levels.WARN
+            )
+          elseif result.code > 1 then
+            vim.notify(
+              "Unclash: Error scanning for conflicted files: "
+                .. (result.stderr or "unknown error"),
+              vim.log.levels.ERROR
+            )
+          end
+        end
+        on_done({})
+        return
       end
-    end
-  end
 
-  local conflicted_files = {}
-  for file, count in pairs(candidate_files) do
-    if count == #jobs then
-      conflicted_files[file] = true
-    end
-  end
+      local candidate_files = {}
+      for line in vim.gsplit(result.stdout, "\n") do
+        if line ~= "" then
+          candidate_files[line] = true
+        end
+      end
 
-  return conflicted_files
+      on_done(candidate_files)
+    end)
+  end)
 end
 
 ---@param bufnr integer
@@ -142,8 +142,13 @@ end
 ---@field incoming Marker
 
 ---@param bufnr integer
----@param conflicts ConflictHunk[]
+---@param conflicts ConflictHunk[]?
 function M.highlight_conflicts(bufnr, conflicts)
+  if not conflicts then
+    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+    return
+  end
+
   -- clear previous extmarks
   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
   for _, conflict in ipairs(conflicts) do
@@ -213,9 +218,16 @@ function M.highlight_conflicts(bufnr, conflicts)
 end
 
 ---@param bufnr integer
----@return ConflictHunk[]
+---@return ConflictHunk[]?
 function M.detect_conflicts(bufnr)
   local markers = find_markers(bufnr)
+  if
+    #markers.current == 0
+    or #markers.separator == 0
+    or #markers.incoming == 0
+  then
+    return nil
+  end
 
   ---@type ConflictHunk[]
   local hunks = {}
@@ -307,7 +319,13 @@ function M.detect_conflicts(bufnr)
     ::continue::
   end
 
-  return hunks
+  if #hunks > 0 then
+    state.hunks[bufnr] = hunks
+    return hunks
+  else
+    state.hunks[bufnr] = nil
+    return nil
+  end
 end
 
 return M

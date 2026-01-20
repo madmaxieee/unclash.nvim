@@ -60,7 +60,7 @@ function M.setup()
     local mouse_pos = vim.fn.getmousepos()
     local clicked_buf = vim.api.nvim_win_get_buf(mouse_pos.winid)
 
-    if not state.conflicted_bufs[clicked_buf] then
+    if not state.hunks[clicked_buf] then
       return "<LeftMouse>"
     end
 

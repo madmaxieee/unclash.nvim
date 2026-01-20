@@ -94,22 +94,24 @@ end
 
 function M.set_qflist()
   local items = {}
-  for file, _ in pairs(state.conflicted_files) do
+  for file, _ in pairs(state.maybe_conflicted_files) do
     local uri = vim.uri_from_fname(file)
     local bufnr = vim.uri_to_bufnr(uri)
     if not vim.api.nvim_buf_is_loaded(bufnr) then
       vim.fn.bufload(bufnr)
     end
-    if not (state.hunks[bufnr] and #state.hunks[bufnr] > 0) then
-      state.hunks[bufnr] = conflict.detect_conflicts(bufnr)
+    if not state.hunks[bufnr] then
+      conflict.detect_conflicts(bufnr)
     end
-    for _, hunk in ipairs(state.hunks[bufnr]) do
-      table.insert(items, {
-        filename = file,
-        lnum = hunk.current.line,
-        end_lnum = hunk.incoming.line,
-        text = "Conflict detected",
-      })
+    if state.hunks[bufnr] then
+      for _, hunk in ipairs(state.hunks[bufnr]) do
+        table.insert(items, {
+          filename = file,
+          lnum = hunk.current.line,
+          end_lnum = hunk.incoming.line,
+          text = "Conflict detected",
+        })
+      end
     end
   end
   vim.fn.setqflist({}, " ", {
@@ -120,7 +122,7 @@ end
 
 function M.open_merge_editor()
   local bufnr = vim.api.nvim_get_current_buf()
-  if not state.conflicted_bufs[bufnr] then
+  if not state.hunks[bufnr] then
     vim.notify("Current buffer is not a conflicted file", vim.log.levels.WARN)
     return
   end
@@ -128,34 +130,37 @@ function M.open_merge_editor()
   merge_editor.open_merge_editor(bufnr, cursor[1])
 end
 
----@param opts? {silent?: boolean}
-function M.refresh(opts)
+---@param on_done? fun()
+---@param opts? {dir?: string, silent?: boolean}
+function M.scan(on_done, opts)
   opts = opts or {}
-  state.conflicted_files = conflict.detect_conflicted_files(vim.fn.getcwd())
+  opts.dir = opts.dir or vim.fn.getcwd()
+  conflict.scan_maybe_conflicted_files(opts.dir, function(files)
+    state.maybe_conflicted_files = files
 
-  -- Update status for all loaded buffers
-  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(bufnr) then
-      local file = vim.api.nvim_buf_get_name(bufnr)
-      if state.conflicted_files[file] then
-        state.conflicted_bufs[bufnr] = true
-        -- Trigger highlight update
-        local hunks = conflict.detect_conflicts(bufnr)
-        state.hunks[bufnr] = hunks
-        conflict.highlight_conflicts(bufnr, hunks)
-      else
-        -- Cleanup if it was conflicted but no longer is
-        if state.conflicted_bufs[bufnr] then
-          state.conflicted_bufs[bufnr] = nil
+    -- Update status for all loaded buffers
+    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(bufnr) then
+        local file = vim.api.nvim_buf_get_name(bufnr)
+        if state.maybe_conflicted_files[file] then
+          local hunks = conflict.detect_conflicts(bufnr)
+          conflict.highlight_conflicts(bufnr, hunks)
+        else
           state.hunks[bufnr] = nil
-          conflict.highlight_conflicts(bufnr, {})
+          conflict.highlight_conflicts(bufnr, nil)
         end
       end
     end
-  end
-  if not opts.silent then
-    vim.notify("Unclash: Refreshed conflict status", vim.log.levels.INFO)
-  end
+
+    if not opts.silent then
+      vim.notify("Unclash: Refreshed conflict status", vim.log.levels.INFO)
+      vim.notify(vim.inspect(files), vim.log.levels.INFO)
+    end
+
+    if on_done then
+      on_done()
+    end
+  end, { silent = opts.silent })
 end
 
 return M
