@@ -21,22 +21,24 @@ local INCOMING_MARKER = ">>>>>>>"
 ---@field incoming Marker[]
 
 local has_rg = vim.fn.executable("rg") == 1
+local TIMEOUT = 1000
 
 ---@param path string a directory or a single file
 ---@return table<string, boolean> conflicted files
 function M.detect_conflicted_files(path)
   local jobs
+  -- TODO: Takes forever to load on massive directories, bad design
   if has_rg then
     jobs = {
-      vim.system({ "rg", "-l", "^<{7}", path }),
-      vim.system({ "rg", "-l", "^={7}", path }),
-      vim.system({ "rg", "-l", "^>{7}", path }),
+      vim.system({ "rg", "-l", "^<{7}", path }, { timeout = TIMEOUT }),
+      vim.system({ "rg", "-l", "^={7}", path }, { timeout = TIMEOUT }),
+      vim.system({ "rg", "-l", "^>{7}", path }, { timeout = TIMEOUT }),
     }
   else
     jobs = {
-      vim.system({ "grep", "-rl", "^<<<<<<<", path }),
-      vim.system({ "grep", "-rl", "^=======", path }),
-      vim.system({ "grep", "-rl", "^>>>>>>>", path }),
+      vim.system({ "grep", "-rl", "^<<<<<<<", path }, { timeout = TIMEOUT }),
+      vim.system({ "grep", "-rl", "^=======", path }, { timeout = TIMEOUT }),
+      vim.system({ "grep", "-rl", "^>>>>>>>", path }, { timeout = TIMEOUT }),
     }
   end
 
