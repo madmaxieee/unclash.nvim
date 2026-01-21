@@ -47,8 +47,10 @@ vim.api.nvim_create_autocmd("TextChanged", {
       end
       timers[args.buf] = vim.defer_fn(function()
         timers[args.buf] = nil
-        local hunks = conflict.detect_conflicts(args.buf)
-        conflict.highlight_conflicts(args.buf, hunks)
+        if vim.api.nvim_buf_is_valid(args.buf) then
+          local hunks = conflict.detect_conflicts(args.buf)
+          conflict.highlight_conflicts(args.buf, hunks)
+        end
       end, 200)
     end
   end,
