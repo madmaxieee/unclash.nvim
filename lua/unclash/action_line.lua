@@ -3,6 +3,7 @@ local M = {}
 local hl = require("unclash.highlight")
 local state = require("unclash.state")
 local utils = require("unclash.utils")
+local config = require("unclash.config")
 
 local ns = require("unclash.constant").ns
 
@@ -57,6 +58,9 @@ function M.setup()
   -- run callbacks on virtual line clicks
   -- TODO: only set keymap for conflicted buffers
   vim.keymap.set("n", "<LeftMouse>", function()
+    if not config.get().action_buttons.enabled then
+      return "<LeftMouse>"
+    end
     local mouse_pos = vim.fn.getmousepos()
     local clicked_buf = vim.api.nvim_win_get_buf(mouse_pos.winid)
 

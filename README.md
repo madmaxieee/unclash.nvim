@@ -25,8 +25,23 @@ A lightweight, feature-rich merge conflict manager for Neovim, written in Lua.
 {
   "madmaxieee/unclash.nvim",
   lazy = false, -- unclash is lazy-loaded by default
-  -- there is currently no configurable options, any suggestions are welcome!
+  opts = {},
 }
+```
+
+## Configuration
+
+You can configure `unclash.nvim` by passing a table to the `setup` function. The following are the default options:
+
+```lua
+require("unclash").setup({
+  action_buttons = {
+    enabled = true, -- Enable/disable action buttons above conflicts
+  },
+  annotations = {
+    enabled = true, -- Enable/disable annotations (e.g. "(Current Change)")
+  },
+})
 ```
 
 ## Usage

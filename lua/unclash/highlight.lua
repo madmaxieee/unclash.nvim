@@ -1,4 +1,4 @@
----@class UnclashHlGroups
+---@class unclash.HlGroups
 ---@field current string
 ---@field current_marker string
 ---@field base string
@@ -11,7 +11,7 @@
 ---@field annotation string
 
 local M = {
-  ---@type UnclashHlGroups
+  ---@type unclash.HlGroups
   groups = {
     current = "UnclashCurrent",
     current_marker = "UnclashCurrentMarker",

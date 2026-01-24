@@ -2,6 +2,7 @@ local M = {}
 
 local hl = require("unclash.highlight")
 local state = require("unclash.state")
+local config = require("unclash.config")
 
 local ns = require("unclash.constant").ns
 
@@ -152,29 +153,33 @@ function M.highlight_conflicts(bufnr, conflicts)
   -- clear previous extmarks
   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
   for _, conflict in ipairs(conflicts) do
-    require("unclash.action_line").draw_action_line(
-      bufnr,
-      conflict.current.line
-    )
-    vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.current.line - 1, 0, {
-      virt_text = { { "(Current Change)", hl.groups.annotation } },
-      virt_text_pos = "eol",
-      right_gravity = false,
-      hl_mode = "combine",
-    })
-    vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.incoming.line - 1, 0, {
-      virt_text = { { "(Incoming Change)", hl.groups.annotation } },
-      virt_text_pos = "eol",
-      right_gravity = false,
-      hl_mode = "combine",
-    })
-    if conflict.base then
-      vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.base.line - 1, 0, {
-        virt_text = { { "(Base)", hl.groups.annotation } },
+    if config.get().action_buttons.enabled then
+      require("unclash.action_line").draw_action_line(
+        bufnr,
+        conflict.current.line
+      )
+    end
+    if config.get().annotations.enabled then
+      vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.current.line - 1, 0, {
+        virt_text = { { "(Current Change)", hl.groups.annotation } },
         virt_text_pos = "eol",
         right_gravity = false,
         hl_mode = "combine",
       })
+      vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.incoming.line - 1, 0, {
+        virt_text = { { "(Incoming Change)", hl.groups.annotation } },
+        virt_text_pos = "eol",
+        right_gravity = false,
+        hl_mode = "combine",
+      })
+      if conflict.base then
+        vim.api.nvim_buf_set_extmark(bufnr, ns, conflict.base.line - 1, 0, {
+          virt_text = { { "(Base)", hl.groups.annotation } },
+          virt_text_pos = "eol",
+          right_gravity = false,
+          hl_mode = "combine",
+        })
+      end
     end
     hl.hl_lines(bufnr, {
       start_line = conflict.current.line,

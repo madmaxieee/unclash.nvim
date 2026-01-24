@@ -1,5 +1,6 @@
 local M = {}
 
+local config = require("unclash.config")
 local conflict = require("unclash.conflict")
 local merge_editor = require("unclash.merge_editor")
 local state = require("unclash.state")
@@ -161,6 +162,11 @@ function M.scan(on_done, opts)
       on_done()
     end
   end, { silent = opts.silent })
+end
+
+---@param user_config unclash.Config
+function M.setup(user_config)
+  config.set(user_config)
 end
 
 return M
