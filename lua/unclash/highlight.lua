@@ -77,15 +77,6 @@ local function blend_fg(color, amount)
   return blend(color, amount, fg)
 end
 
----only set highlight group if it is not already defined
----@param name string
----@param opts vim.api.keyset.highlight
-local function safe_set_hl(name, opts)
-  if vim.tbl_isempty(vim.api.nvim_get_hl(0, { name = name })) then
-    vim.api.nvim_set_hl(0, name, opts)
-  end
-end
-
 local hl_links = {
   current = "DiffAdd",
   base = "DiffChange",
@@ -97,26 +88,32 @@ local hl_links = {
 local function setup_hl_groups()
   for group, link in pairs(hl_links) do
     local hl_group = M.groups[group]
-    safe_set_hl(hl_group, { link = link })
+    vim.api.nvim_set_hl(0, hl_group, { link = link, default = true })
     if group == "current" or group == "base" or group == "incoming" then
       local c = vim.api.nvim_get_hl(0, { name = link })
       local marker_bg = blend_bg(c.bg, 0.4)
-      safe_set_hl(hl_group .. "Marker", { bg = marker_bg })
+      vim.api.nvim_set_hl(
+        0,
+        hl_group .. "Marker",
+        { bg = marker_bg, default = true }
+      )
     end
   end
 
   local comment_fg = vim.api.nvim_get_hl(0, { name = "Comment" }).fg
   local diff_change_bg = vim.api.nvim_get_hl(0, { name = "DiffChange" }).bg
-  safe_set_hl(M.groups.action_button, {
+  vim.api.nvim_set_hl(0, M.groups.action_button, {
     fg = comment_fg,
     bg = diff_change_bg,
     underline = true,
+    default = true,
   })
-  safe_set_hl(M.groups.merge_editor_button, {
+  vim.api.nvim_set_hl(0, M.groups.merge_editor_button, {
     fg = blend_fg(comment_fg, 0.5),
     bg = diff_change_bg,
     underline = true,
     bold = true,
+    default = true,
   })
 end
 
