@@ -16,6 +16,7 @@ A lightweight, feature-rich merge conflict manager for Neovim, written in Lua.
 - **3-Way Merge Editor**: Opens a specialized tab layout with the Result, Current, and Incoming views side-by-side.
 - **Navigation**: Jump between conflicts easily.
 - **Quickfix / Trouble Integration**: Populate the quickfix list or [Trouble.nvim](https://github.com/folke/trouble.nvim) with all detected conflicts.
+- **Snacks Picker Integration**: Browse and preview all workspace conflicts with [snacks.nvim](https://github.com/folke/snacks.nvim) picker.
 
 ## Installation
 
@@ -24,24 +25,26 @@ A lightweight, feature-rich merge conflict manager for Neovim, written in Lua.
 ```lua
 {
   "madmaxieee/unclash.nvim",
-  lazy = false, -- unclash is lazy-loaded by default
-  opts = {},
+  lazy = false,
+  -- default options
+  opts = {
+    action_buttons = {
+      enabled = true,
+    },
+    annotations = {
+      enabled = true,
+    },
+  },
+  keys = {
+    { "]x", function() require("unclash").next_conflict() end, desc = "Next Conflict" },
+    { "[x", function() require("unclash").prev_conflict() end, desc = "Prev Conflict" },
+    { "<leader>co", function() require("unclash").open_merge_editor() end, desc = "Open Merge Editor" },
+    { "<leader>cc", function() require("unclash").accept_current() end, desc = "Accept Current" },
+    { "<leader>ci", function() require("unclash").accept_incoming() end, desc = "Accept Incoming" },
+    { "<leader>cb", function() require("unclash").accept_both() end, desc = "Accept Both" },
+    { "<leader>fx", function() require("unclash.snacks").pick() end, desc = "Pick Conflicts" },
+  },
 }
-```
-
-## Configuration
-
-You can configure `unclash.nvim` by passing a table to the `setup` function. The following are the default options:
-
-```lua
-require("unclash").setup({
-  action_buttons = {
-    enabled = true, -- Enable/disable action buttons above conflicts
-  },
-  annotations = {
-    enabled = true, -- Enable/disable annotations (e.g. "(Current Change)")
-  },
-})
 ```
 
 ## Usage
@@ -58,6 +61,7 @@ require("unclash").setup({
 | `UnclashOpenMergeEditor` | Open the 3-way merge editor for the current file.                               |
 | `UnclashQf`              | Add all conflicts in the workspace to the Quickfix list.                        |
 | `UnclashTrouble`         | Show all conflicts using [Trouble.nvim](https://github.com/folke/trouble.nvim). |
+| `UnclashPick`            | Open the snacks picker to browse and preview all workspace conflicts.           |
 
 ### Lua API & Keybindings
 
@@ -74,6 +78,11 @@ vim.keymap.set("n", "<leader>co", unclash.open_merge_editor, { desc = "Open Merg
 vim.keymap.set("n", "<leader>cc", unclash.accept_current, { desc = "Accept Current" })
 vim.keymap.set("n", "<leader>ci", unclash.accept_incoming, { desc = "Accept Incoming" })
 vim.keymap.set("n", "<leader>cb", unclash.accept_both, { desc = "Accept Both" })
+
+-- Snacks picker for all workspace conflicts
+vim.keymap.set("n", "<leader>cx", function()
+  require("unclash.snacks").pick()
+end, { desc = "Pick Conflicts" })
 ```
 
 ### Merge Editor
