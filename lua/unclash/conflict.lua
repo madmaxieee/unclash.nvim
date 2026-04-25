@@ -3,13 +3,13 @@ local M = {}
 local hl = require("unclash.highlight")
 local state = require("unclash.state")
 local config = require("unclash.config")
+local constant = require("unclash.constant")
 
-local ns = require("unclash.constant").ns
-
-local CURRENT_MARKER = "<<<<<<<"
-local BASE_MARKER = "|||||||"
-local SEPARATOR_MARKER = "======="
-local INCOMING_MARKER = ">>>>>>>"
+local ns = constant.ns
+local CURRENT_MARKER = constant.CURRENT_MARKER
+local BASE_MARKER = constant.BASE_MARKER
+local SEPARATOR_MARKER = constant.SEPARATOR_MARKER
+local INCOMING_MARKER = constant.INCOMING_MARKER
 
 ---@alias MarkerType "current" | "base" | "separator" | "incoming"
 
