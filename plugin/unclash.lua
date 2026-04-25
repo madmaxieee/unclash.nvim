@@ -124,6 +124,13 @@ end, {
   nargs = 0,
 })
 
+vim.api.nvim_create_user_command("UnclashPick", function()
+  require("unclash.snacks").pick()
+end, {
+  desc = "Open the snacks picker for merge conflicts",
+  nargs = 0,
+})
+
 hl.setup()
 action_line.setup()
 merge_editor.setup()
