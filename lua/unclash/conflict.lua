@@ -74,11 +74,9 @@ function M.scan_maybe_conflicted_files(path, on_done, opts)
   end)
 end
 
----@param bufnr integer
+---@param lines string[]
 ---@return MarkerSet
-local function find_markers(bufnr)
-  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-
+function M.find_markers(lines)
   ---@type MarkerSet
   local markers = {
     current = {},
@@ -222,10 +220,9 @@ function M.highlight_conflicts(bufnr, conflicts)
   end
 end
 
----@param bufnr integer
+---@param markers MarkerSet
 ---@return ConflictHunk[]?
-function M.detect_conflicts(bufnr)
-  local markers = find_markers(bufnr)
+function M.build_hunks(markers)
   if
     #markers.current == 0
     or #markers.separator == 0
@@ -325,6 +322,20 @@ function M.detect_conflicts(bufnr)
   end
 
   if #hunks > 0 then
+    return hunks
+  else
+    return nil
+  end
+end
+
+---@param bufnr integer
+---@return ConflictHunk[]?
+function M.detect_conflicts(bufnr)
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local markers = M.find_markers(lines)
+  local hunks = M.build_hunks(markers)
+
+  if hunks then
     state.hunks[bufnr] = hunks
     return hunks
   else
