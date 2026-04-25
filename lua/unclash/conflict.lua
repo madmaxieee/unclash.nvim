@@ -221,14 +221,14 @@ function M.highlight_conflicts(bufnr, conflicts)
 end
 
 ---@param markers MarkerSet
----@return ConflictHunk[]?
+---@return ConflictHunk[]
 function M.build_hunks(markers)
   if
     #markers.current == 0
     or #markers.separator == 0
     or #markers.incoming == 0
   then
-    return nil
+    return {}
   end
 
   ---@type ConflictHunk[]
@@ -321,27 +321,23 @@ function M.build_hunks(markers)
     ::continue::
   end
 
-  if #hunks > 0 then
-    return hunks
-  else
-    return nil
-  end
+  return hunks
 end
 
 ---@param bufnr integer
----@return ConflictHunk[]?
+---@return ConflictHunk[]
 function M.detect_conflicts(bufnr)
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local markers = M.find_markers(lines)
   local hunks = M.build_hunks(markers)
 
-  if hunks then
+  if #hunks > 0 then
     state.hunks[bufnr] = hunks
-    return hunks
   else
     state.hunks[bufnr] = nil
-    return nil
   end
+
+  return hunks
 end
 
 return M

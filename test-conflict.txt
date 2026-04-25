@@ -28,3 +28,7 @@ incoming content 2
 incoming content 3
 incoming content 4
 >>>>>>> incoming
+
+not a conflict:
+
+>>>>>>> some stuff
